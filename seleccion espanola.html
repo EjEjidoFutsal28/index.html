@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convocatoria Selección Española - Mundial 2026</title>
+    <!-- Tailwind CSS para diseño rápido y moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para iconos futbolísticos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Marked.js para formatear las respuestas markdown de Gemini -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Personalización de barra de scroll */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ef4444;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+
+    <!-- CABECERA PRINCIPAL -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="bg-red-600 text-yellow-300 p-3 rounded-xl shadow-lg shadow-red-600/20">
+                    <i class="fa-solid fa-trophy text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-400 to-red-600">
+                        Camino al Mundial 2026
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-400 font-medium">
+                        Posible Convocatoria de la Selección Española | <span class="text-red-400 font-bold">26 Plazas</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- CONTADORES GLOBALES DE LA CONVOCATORIA -->
+            <div class="flex flex-wrap items-center gap-3 bg-slate-950/50 p-2 rounded-xl border border-slate-800">
+                <div class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-center">
+                    <div class="text-xs text-slate-400 font-semibold uppercase">Total Seleccionados</div>
+                    <div id="global-counter" class="text-lg font-bold text-yellow-400">0 / 26</div>
+                </div>
+                <button onclick="autoSelectTop()" class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-xs font-bold rounded-lg transition-all duration-200 flex items-center gap-2 shadow-lg shadow-red-900/30">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Selección Probable
+                </button>
+                <button onclick="clearSelection()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition-all">
+                    Reiniciar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- PANEL DE CONTROL & FILTROS -->
+    <section class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 w-full">
+        <!-- BOTONES DE INTEGRACIÓN GEMINI ✨ -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <button onclick="analyzeConvocatoria()" class="relative group overflow-hidden p-4 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-700 hover:from-violet-500 hover:to-indigo-600 text-white shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-violet-500/30">
+                <div class="absolute right-3 top-3 opacity-10 group-hover:opacity-25 transition-opacity">
+                    <i class="fa-solid fa-brain text-7xl"></i>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/10 p-2.5 rounded-xl">
+                        <i class="fa-solid fa-chart-line text-xl text-yellow-300"></i>
+                    </div>
+                    <div class="text-left">
+                        <span class="block font-black text-sm uppercase tracking-wide">✨ Analizar Convocatoria con IA</span>
+                        <span class="block text-xs text-violet-200">Evalúa el equilibrio táctico de tus elegidos</span>
+                    </div>
+                </div>
+            </button>
+
+            <button onclick="generatePressConference()" class="relative group overflow-hidden p-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-emerald-500/30">
+                <div class="absolute right-3 top-3 opacity-10 group-hover:opacity-25 transition-opacity">
+                    <i class="fa-solid fa-microphone-lines text-7xl"></i>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/10 p-2.5 rounded-xl">
+                        <i class="fa-solid fa-comments text-xl text-yellow-300"></i>
+                    </div>
+                    <div class="text-left">
+                        <span class="block font-black text-sm uppercase tracking-wide">✨ Simular Rueda de Prensa</span>
+                        <span class="block text-xs text-emerald-200">Enfréntate a las preguntas de los periodistas</span>
+                    </div>
+                </div>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-900 p-4 rounded-2xl border border-slate-800/80 shadow-xl mb-8">
+            <!-- Buscador -->
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <input type="text" id="search-input" oninput="filterPlayers()" placeholder="Buscar jugador por nombre..." 
+                       class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all text-sm">
+            </div>
+
+            <!-- Selector de Clubs -->
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </span>
+                <select id="club-filter" onchange="filterPlayers()" 
+                        class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all text-sm appearance-none">
+                    <option value="">Todos los equipos / Clubs</option>
+                </select>
+                <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500">
+                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                </span>
+            </div>
+
+            <!-- Leyenda Interactiva -->
+            <div class="flex items-center justify-around text-xs bg-slate-950/60 rounded-xl p-2 border border-slate-800/50">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                    <span class="text-slate-300 font-medium">>80% Muy Probable</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                    <span class="text-slate-300 font-medium">40-79% Duda</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-rose-600"></span>
+                    <span class="text-slate-300 font-medium">&lt;40% Remoto</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTIFICADOR DE ESTADO DE LA PLANTILLA -->
+        <div id="selection-alert" class="hidden mb-6 p-4 rounded-xl border bg-yellow-500/10 border-yellow-500/30 text-yellow-300 text-sm flex items-center gap-3">
+            <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+            <span><strong>¡Atención!</strong> Tienes seleccionados más de los 26 jugadores reglamentarios para el mundial. El análisis táctico reflejará un excedente.</span>
+        </div>
+
+        <!-- REJILLA PRINCIPAL DE POSICIONES -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            <!-- COLUMNA 1: PORTEROS (3) -->
+            <div class="flex flex-col gap-4">
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-lg">
+                    <div class="bg-gradient-to-r from-amber-500 to-yellow-500 p-4 flex justify-between items-center">
+                        <h2 class="font-extrabold uppercase text-slate-950 tracking-wide flex items-center gap-2">
+                            <i class="fa-solid fa-hands-holding-circle"></i> Porteros (3)
+                        </h2>
+                        <span id="counter-porteros" class="bg-slate-950/30 text-slate-950 text-xs font-black px-2.5 py-1 rounded-full">0/3</span>
+                    </div>
+                    <div class="p-3 divide-y divide-slate-800/60" id="container-porteros">
+                        <!-- Render dinámico de porteros -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA 2: DEFENSAS (8) -->
+            <div class="flex flex-col gap-6">
+                <!-- LATERAL DERECHO (2) -->
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-lg">
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex justify-between items-center">
+                        <h2 class="font-extrabold uppercase text-white tracking-wide flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-right"></i> Lateral Derecho (2)
+                        </h2>
+                        <span id="counter-lat-der" class="bg-black/30 text-white text-xs font-black px-2.5 py-1 rounded-full">0/2</span>
+                    </div>
+                    <div class="p-3 divide-y divide-slate-800/60" id="container-lat-der">
+                        <!-- Render lateral derecho -->
+                    </div>
+                </div>
+
+                <!-- DEFENSA CENTRAL (4) -->
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-lg">
+                    <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-4 flex justify-between items-center">
+                        <h2 class="font-extrabold uppercase text-white tracking-wide flex items-center gap-2">
+                            <i class="fa-solid fa-shield"></i> Defensa Central (4)
+                        </h2>
+                        <span id="counter-centrales" class="bg-black/30 text-white text-xs font-black px-2.5 py-1 rounded-full">0/4</span>
+                    </div>
+                    <div class="p-3 divide-y divide-slate-800/60" id="container-centrales">
+                        <!-- Render centrales -->
+                    </div>
+                </div>
+
+                <!-- LATERAL IZQUIERDO (2) -->
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-lg">
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex justify-between items-center">
+                        <h2 class="font-extrabold uppercase text-white tracking-wide flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-left"></i> Lateral Izquierdo (2)
+                        </h2>
+                        <span id="counter-lat-izq" class="bg-black/30 text-white text-xs font-black px-2.5 py-1 rounded-full">0/2</span>
+                    </div>
+                    <div class="p-3 divide-y divide-slate-800/60" id="container-lat-izq">
+                        <!-- Render lateral izquierdo -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA 3: MEDIOCENTROS (7-8) -->
+            <div class="flex flex-col gap-4">
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-lg">
+                    <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-4 flex justify-between items-center">
+                        <h2 class="font-extrabold uppercase text-white tracking-wide flex items-center gap-2">
+                            <i class="fa-solid fa-arrows-split-up-and-left"></i> Mediocentros (7-8)
+                        </h2>
+                        <span id="counter-mediocentros" class="bg-black/30 text-white text-xs font-black px-2.5 py-1 rounded-full">0/8</span>
+                    </div>
+                    <div class="p-3 divide-y divide-slate-800/60" id="container-mediocentros">
+                        <!-- Render mediocentros -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA 4: DELANTEROS (7-8) -->
+            <div class="flex flex-col gap-6">
+                <!-- EXTREMOS (4-5) -->
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-lg">
+                    <div class="bg-gradient-to-r from-red-600 to-rose-600 p-4 flex justify-between items-center">
+                        <h2 class="font-extrabold uppercase text-white tracking-wide flex items-center gap-2">
+                            <i class="fa-solid fa-bolt"></i> Extremos (4-5)
+                        </h2>
+                        <span id="counter-extremos" class="bg-black/30 text-white text-xs font-black px-2.5 py-1 rounded-full">0/5</span>
+                    </div>
+                    <div class="p-3 divide-y divide-slate-800/60" id="container-extremos">
+                        <!-- Render extremos -->
+                    </div>
+                </div>
+
+                <!-- DELANTERO CENTRO (3) -->
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-lg">
+                    <div class="bg-gradient-to-r from-red-700 to-rose-800 p-4 flex justify-between items-center">
+                        <h2 class="font-extrabold uppercase text-white tracking-wide flex items-center gap-2">
+                            <i class="fa-solid fa-bullseye"></i> Delantero Centro (3)
+                        </h2>
+                        <span id="counter-delanteros" class="bg-black/30 text-white text-xs font-black px-2.5 py-1 rounded-full">0/3</span>
+                    </div>
+                    <div class="p-3 divide-y divide-slate-800/60" id="container-delanteros">
+                        <!-- Render delantero centro -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- DRAWER / PANEL LATERAL PARA LA RESPUESTA DE GEMINI IA -->
+    <div id="ai-panel" class="fixed inset-y-0 right-0 w-full md:w-[600px] bg-slate-900 border-l border-slate-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col hidden">
+        <div class="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+            <div class="flex items-center gap-2.5">
+                <div class="bg-violet-600/20 text-violet-400 p-2 rounded-lg">
+                    <i class="fa-solid fa-robot text-lg"></i>
+                </div>
+                <div>
+                    <h3 id="ai-panel-title" class="font-bold text-slate-100">Análisis Inteligente</h3>
+                    <p class="text-xs text-slate-400">Powered by Gemini AI 2.5</p>
+                </div>
+            </div>
+            <button onclick="closeAiPanel()" class="text-slate-400 hover:text-white p-2 hover:bg-slate-800 rounded-lg transition-all">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Cuerpo del panel deslizable -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6" id="ai-panel-content">
+            <!-- Loader -->
+            <div id="ai-loader" class="hidden flex flex-col items-center justify-center py-20 space-y-4">
+                <div class="relative w-16 h-16">
+                    <div class="absolute inset-0 rounded-full border-4 border-violet-500/20 border-t-violet-500 animate-spin"></div>
+                    <div class="absolute inset-3 flex items-center justify-center text-violet-400 text-xl animate-pulse">
+                        <i class="fa-solid fa-soccer-ball"></i>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <p class="font-bold text-slate-300">Consultando al Staff de Inteligencia Artificial...</p>
+                    <p class="text-xs text-slate-500 mt-1">Analizando equilibrio de posiciones y estadísticas</p>
+                </div>
+            </div>
+
+            <!-- Contenido dinámico renderizado de Markdown -->
+            <div id="ai-response-text" class="prose prose-invert max-w-none text-slate-300 text-sm leading-relaxed space-y-4">
+                <!-- Se inyecta aquí -->
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-800 bg-slate-950/50 flex justify-end">
+            <button onclick="closeAiPanel()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition-all text-xs">
+                Cerrar Panel
+            </button>
+        </div>
+    </div>
+
+    <!-- FOOTER INFORMATIVO -->
+    <footer class="mt-auto border-t border-slate-800 bg-slate-950/80 py-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>Datos sincronizados con la estimación de la posible convocatoria para el Mundial 2026.</p>
+            <p class="font-semibold text-slate-400">Fecha de la lista definitiva: <span class="text-red-500">25 de Mayo (26 jugadores)</span></p>
+        </div>
+    </footer>
+
+    <!-- MODAL EDITAR JUGADOR (PROBABILIDAD) -->
+    <div id="edit-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-200">
+            <h3 class="text-lg font-bold text-slate-100 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square text-red-500"></i> Editar Probabilidad
+            </h3>
+            <p id="modal-player-desc" class="text-sm text-slate-400 mb-6">Modifica la probabilidad para este candidato.</p>
+            
+            <div class="space-y-4 mb-6">
+                <div class="flex justify-between text-sm font-semibold">
+                    <span class="text-slate-300">Probabilidad:</span>
+                    <span id="modal-percentage-display" class="text-red-400">50%</span>
+                </div>
+                <input type="range" id="modal-probability-slider" min="0" max="100" step="5" class="w-full accent-red-500" oninput="document.getElementById('modal-percentage-display').innerText = this.value + '%'">
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeEditModal()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-all text-sm">
+                    Cancelar
+                </button>
+                <button onclick="savePlayerProbability()" class="flex-1 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold rounded-xl transition-all text-sm shadow-lg shadow-red-900/40">
+                    Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE LOGICA INTERACTIVA -->
+    <script>
+        // BASE DE DATOS EXACTA DE LA IMAGEN
+        let players = [
+            // PORTEROS (3 plazas deseadas)
+            { id: 1, name: "Unai Simón", team: "ATH", prob: 95, category: "porteros", trend: false, selected: false },
+            { id: 2, name: "David Raya", team: "ARS", prob: 95, category: "porteros", trend: false, selected: false },
+            { id: 3, name: "Joan García", team: "BAR", prob: 60, category: "porteros", trend: false, selected: false },
+            { id: 4, name: "Álex Remiro", team: "RSO", prob: 40, category: "porteros", trend: false, selected: false },
+            { id: 5, name: "R. Sánchez", team: "CHE", prob: 5, category: "porteros", trend: false, selected: false },
+            { id: 6, name: "Leo Román", team: "MAL", prob: 5, category: "porteros", trend: false, selected: false },
+
+            // DEFENSAS - Lateral Izquierdo (2)
+            { id: 7, name: "M. Cucurella", team: "CHE", prob: 95, category: "lat-izq", trend: false, selected: false },
+            { id: 8, name: "A. Grimaldo", team: "LEV", prob: 95, category: "lat-izq", trend: false, selected: false },
+            { id: 9, name: "Fran García", team: "RMA", prob: 5, category: "lat-izq", trend: false, selected: false },
+            { id: 10, name: "Sergio Gómez", team: "RSO", prob: 5, category: "lat-izq", trend: false, selected: false },
+
+            // DEFENSAS - Lateral Derecho (2)
+            { id: 11, name: "M. Llorente", team: "ATM", prob: 95, category: "lat-der", trend: false, selected: false },
+            { id: 12, name: "Pedro Porro", team: "TOT", prob: 75, category: "lat-der", trend: false, selected: false },
+            { id: 13, name: "Ó. Mingueza", team: "CEL", prob: 5, category: "lat-der", trend: false, selected: false },
+            { id: 14, name: "Victor Gómez", team: "BRA", prob: 5, category: "lat-der", trend: false, selected: false },
+
+            // DEFENSAS - Defensa Central (4)
+            { id: 15, name: "Pau Cubarsí", team: "BAR", prob: 80, category: "centrales", trend: false, selected: false },
+            { id: 16, name: "Laporte", team: "ATH", prob: 75, category: "centrales", trend: false, selected: false },
+            { id: 17, name: "Dean Huijsen", team: "RMA", prob: 70, category: "centrales", trend: false, selected: false },
+            { id: 18, name: "Marc Pubill", team: "ATM", prob: 50, category: "centrales", trend: false, selected: false },
+            { id: 19, name: "Eric García", team: "BAR", prob: 45, category: "centrales", trend: false, selected: false },
+            { id: 20, name: "R. Le Normand", team: "ATM", prob: 45, category: "centrales", trend: false, selected: false },
+            { id: 21, name: "C. Mosquera", team: "ARS", prob: 25, category: "centrales", trend: false, selected: false },
+            { id: 22, name: "Dani Vivian", team: "ATH", prob: 20, category: "centrales", trend: false, selected: false },
+            { id: 23, name: "Jon Martín", team: "RSO", prob: 5, category: "centrales", trend: false, selected: false },
+            { id: 24, name: "Pau Torres", team: "AST", prob: 5, category: "centrales", trend: false, selected: false },
+
+            // MEDIOCENTROS (7-8)
+            { id: 25, name: "Pedri", team: "BAR", prob: 95, category: "mediocentros", trend: false, selected: false },
+            { id: 26, name: "Rodri", team: "MCI", prob: 95, category: "mediocentros", trend: false, selected: false },
+            { id: 27, name: "Dani Olmo", team: "BAR", prob: 95, category: "mediocentros", trend: false, selected: false },
+            { id: 28, name: "Zubimendi", team: "ARS", prob: 95, category: "mediocentros", trend: false, selected: false },
+            { id: 29, name: "Fabián Ruiz", team: "PSG", prob: 95, category: "mediocentros", trend: false, selected: false },
+            { id: 30, name: "Mikel Merino", team: "ARS", prob: 85, category: "mediocentros", trend: true, selected: false }, // Tiene "+" en la imagen
+            { id: 31, name: "Gavi", team: "BAR", prob: 75, category: "mediocentros", trend: false, selected: false },
+            { id: 32, name: "Pablo Fornals", team: "BET", prob: 50, category: "mediocentros", trend: false, selected: false },
+            { id: 33, name: "Aleix García", team: "LEV", prob: 30, category: "mediocentros", trend: false, selected: false },
+            { id: 34, name: "Carlos Soler", team: "RSO", prob: 25, category: "mediocentros", trend: false, selected: false },
+            { id: 35, name: "Pablo Barrios", team: "ATM", prob: 10, category: "mediocentros", trend: true, selected: false }, // Tiene "+" en la imagen
+            { id: 36, name: "Gorrotxategi", team: "RSO", prob: 5, category: "mediocentros", trend: true, selected: false },  // Tiene "+" en la imagen
+
+            // DELANTEROS - Extremos (4-5)
+            { id: 37, name: "Lamine Yamal", team: "BAR", prob: 95, category: "extremos", trend: true, selected: false }, // Tiene "+" en la imagen
+            { id: 38, name: "Nico Williams", team: "ATH", prob: 85, category: "extremos", trend: true, selected: false }, // Tiene "+" en la imagen
+            { id: 39, name: "Álex Baena", team: "ATM", prob: 70, category: "extremos", trend: false, selected: false },
+            { id: 40, name: "Yéremy Pino", team: "CRY", prob: 65, category: "extremos", trend: false, selected: false },
+            { id: 41, name: "Víctor Muñoz", team: "OSA", prob: 60, category: "extremos", trend: true, selected: false }, // Tiene "+" en la imagen
+            { id: 42, name: "Moleiro", team: "VIL", prob: 35, category: "extremos", trend: false, selected: false },
+            { id: 43, name: "J. De Frutos", team: "RAY", prob: 15, category: "extremos", trend: false, selected: false },
+            { id: 44, name: "J. Rodríguez", team: "COM", prob: 10, category: "extremos", trend: false, selected: false },
+
+            // DELANTEROS - Delantero Centro (3)
+            { id: 45, name: "Oyarzabal", team: "RSO", prob: 95, category: "delanteros", trend: false, selected: false },
+            { id: 46, name: "Ferran Torres", team: "BAR", prob: 95, category: "delanteros", trend: false, selected: false },
+            { id: 47, name: "Borja Iglesias", team: "CEL", prob: 80, category: "delanteros", trend: false, selected: false },
+            { id: 48, name: "Toni Martínez", team: "ALA", prob: 10, category: "delanteros", trend: false, selected: false },
+            { id: 49, name: "Carlos Espí", team: "LEV", prob: 10, category: "delanteros", trend: false, selected: false },
+            { id: 50, name: "Gonzalo", team: "RMA", prob: 10, category: "delanteros", trend: false, selected: false },
+            { id: 51, name: "Ansu Fati", team: "MON", prob: 10, category: "delanteros", trend: false, selected: false }
+        ];
+
+        let selectedPlayerForEdit = null;
+
+        // EJECUTAR AL INICIAR
+        window.onload = function() {
+            populateClubFilter();
+            renderAllLists();
+            updateCounters();
+        };
+
+        // LLENAR FILTRO DE EQUIPOS AUTOMATICAMENTE
+        function populateClubFilter() {
+            const filter = document.getElementById('club-filter');
+            const uniqueClubs = [...new Set(players.map(p => p.team))].sort();
+            uniqueClubs.forEach(club => {
+                const opt = document.createElement('option');
+                opt.value = club;
+                opt.innerText = club;
+                filter.appendChild(opt);
+            });
+        }
+
+        // CONTROL COLOR PROBABILIDADES
+        function getProbClass(prob) {
+            if (prob >= 80) return "bg-emerald-950/40 text-emerald-400 border border-emerald-800/60";
+            if (prob >= 40) return "bg-yellow-950/40 text-yellow-400 border border-yellow-800/60";
+            return "bg-slate-900 text-slate-400 border border-slate-800";
+        }
+
+        function getProbBarClass(prob) {
+            if (prob >= 80) return "bg-emerald-500";
+            if (prob >= 40) return "bg-yellow-500";
+            return "bg-slate-600";
+        }
+
+        // RENDER DE CADA CATEGORIA
+        function renderCategory(categoryName, containerId) {
+            const container = document.getElementById(containerId);
+            const searchValue = document.getElementById('search-input').value.toLowerCase();
+            const selectedClub = document.getElementById('club-filter').value;
+
+            // Filtrar y ordenar por probabilidad descendente
+            const list = players
+                .filter(p => p.category === categoryName)
+                .filter(p => p.name.toLowerCase().includes(searchValue))
+                .filter(p => !selectedClub || p.team === selectedClub)
+                .sort((a, b) => b.prob - a.prob);
+
+            container.innerHTML = "";
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-xs text-slate-500 italic">No hay candidatos para este filtro</div>`;
+                return;
+            }
+
+            list.forEach(p => {
+                const isSelected = p.selected ? 'checked' : '';
+                const activeCardStyle = p.selected ? 'bg-red-950/25 border-l-4 border-l-red-500' : 'hover:bg-slate-800/30';
+                
+                const html = `
+                    <div class="py-3 px-2 flex items-center justify-between transition-all rounded-lg ${activeCardStyle} group">
+                        <div class="flex items-center gap-3">
+                            <!-- Checkbox interactivo para convocar -->
+                            <input type="checkbox" ${isSelected} onchange="togglePlayerSelection(${p.id})" 
+                                   class="w-4 h-4 rounded text-red-600 focus:ring-red-500 focus:ring-offset-slate-900 bg-slate-950 border-slate-700 cursor-pointer">
+                            
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded uppercase tracking-wider">${p.team}</span>
+                                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white transition-all">${p.name}</span>
+                                    ${p.trend ? '<span class="text-[10px] bg-red-500/15 text-red-400 px-1 rounded-full font-bold flex items-center gap-0.5"><i class="fa-solid fa-arrow-trend-up"></i> +</span>' : ''}
+                                </div>
+                                <!-- Pequeña barra visual de probabilidad -->
+                                <div class="w-24 bg-slate-950 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                                    <div class="h-full rounded-full ${getProbBarClass(p.prob)}" style="width: ${p.prob}%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boton interactivo para cambiar la probabilidad -->
+                        <div class="flex items-center gap-2">
+                            <span onclick="openEditModal(${p.id})" class="text-xs font-bold px-2 py-1 rounded-md cursor-pointer transition-all ${getProbClass(p.prob)} hover:scale-105 active:scale-95" title="Haga clic para editar">
+                                ${p.prob}%
+                            </span>
+                            <button onclick="openEditModal(${p.id})" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 text-xs transition-all">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        function renderAllLists() {
+            renderCategory("porteros", "container-porteros");
+            renderCategory("lat-der", "container-lat-der");
+            renderCategory("centrales", "container-centrales");
+            renderCategory("lat-izq", "container-lat-izq");
+            renderCategory("mediocentros", "container-mediocentros");
+            renderCategory("extremos", "container-extremos");
+            renderCategory("delanteros", "container-delanteros");
+        }
+
+        // ACTUALIZACIÓN DE CONTADORES E INDICADORES
+        function updateCounters() {
+            // Contar convocados por posición
+            const getCount = (cat) => players.filter(p => p.category === cat && p.selected).length;
+
+            const counts = {
+                porteros: getCount("porteros"),
+                latDer: getCount("lat-der"),
+                centrales: getCount("centrales"),
+                latIzq: getCount("lat-izq"),
+                mediocentros: getCount("mediocentros"),
+                extremos: getCount("extremos"),
+                delanteros: getCount("delanteros")
+            };
+
+            const totalSelected = Object.values(counts).reduce((a, b) => a + b, 0);
+
+            // Actualizar etiquetas en DOM
+            document.getElementById("global-counter").innerText = `${totalSelected} / 26`;
+            
+            // Si supera el límite de 26, se activa alerta
+            const alertBox = document.getElementById("selection-alert");
+            if (totalSelected > 26) {
+                alertBox.classList.remove("hidden");
+            } else {
+                alertBox.classList.add("hidden");
+            }
+
+            // Actualizar badges por posición
+            document.getElementById("counter-porteros").innerText = `${counts.porteros}/3`;
+            document.getElementById("counter-lat-der").innerText = `${counts.latDer}/2`;
+            document.getElementById("counter-centrales").innerText = `${counts.centrales}/4`;
+            document.getElementById("counter-lat-izq").innerText = `${counts.latIzq}/2`;
+            document.getElementById("counter-mediocentros").innerText = `${counts.mediocentros}/8`;
+            document.getElementById("counter-extremos").innerText = `${counts.extremos}/5`;
+            document.getElementById("counter-delanteros").innerText = `${counts.delanteros}/3`;
+        }
+
+        // SELECCIONAR / DESELECCIONAR JUGADORES
+        function togglePlayerSelection(id) {
+            const player = players.find(p => p.id === id);
+            if (player) {
+                player.selected = !player.selected;
+                renderAllLists();
+                updateCounters();
+            }
+        }
+
+        // FILTRADO DINÁMICO
+        function filterPlayers() {
+            renderAllLists();
+        }
+
+        // LIMPIAR SELECCIÓN
+        function clearSelection() {
+            players.forEach(p => p.selected = false);
+            renderAllLists();
+            updateCounters();
+        }
+
+        // AUTO-SELECCIONAR LOS 26 CON MÁS PROBABILIDAD (Modelo predictivo automático)
+        function autoSelectTop() {
+            // Limpiamos la selección actual
+            players.forEach(p => p.selected = false);
+
+            // Criterio de negocio basado en cuotas aproximadas por posición para cuadrar los 26:
+            const selectTopInCategory = (category, limit) => {
+                players
+                    .filter(p => p.category === category)
+                    .sort((a, b) => b.prob - a.prob)
+                    .slice(0, limit)
+                    .forEach(p => p.selected = true);
+            };
+
+            selectTopInCategory("porteros", 3);
+            selectTopInCategory("lat-der", 2);
+            selectTopInCategory("centrales", 4);
+            selectTopInCategory("lat-izq", 2);
+            selectTopInCategory("mediocentros", 8);
+            selectTopInCategory("extremos", 4);
+            selectTopInCategory("delanteros", 3);
+
+            renderAllLists();
+            updateCounters();
+        }
+
+        // MODAL PARA EDITAR PROBABILIDAD
+        function openEditModal(id) {
+            const player = players.find(p => p.id === id);
+            if (player) {
+                selectedPlayerForEdit = player;
+                document.getElementById("modal-player-desc").innerText = `Ajustar las probabilidades de convocatoria para ${player.name} (${player.team})`;
+                document.getElementById("modal-probability-slider").value = player.prob;
+                document.getElementById("modal-percentage-display").innerText = player.prob + "%";
+                document.getElementById("edit-modal").classList.remove("hidden");
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById("edit-modal").classList.add("hidden");
+            selectedPlayerForEdit = null;
+        }
+
+        function savePlayerProbability() {
+            if (selectedPlayerForEdit) {
+                const newValue = parseInt(document.getElementById("modal-probability-slider").value);
+                selectedPlayerForEdit.prob = newValue;
+                renderAllLists();
+                closeEditModal();
+            }
+        }
+
+        // ==========================================
+        // INTEGRACIÓN DE LA API DE GEMINI (LLM) ✨
+        // ==========================================
+
+        // Función con política de reintentos exponencial y gestión de errores
+        async function callGemini(prompt, systemInstruction = "") {
+            const apiKey = ""; // Se inyecta en tiempo de ejecución por el entorno
+            const url = `https://genergenerativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }]
+            };
+            if (systemInstruction) {
+                payload.systemInstruction = { parts: [{ text: systemInstruction }] };
+            }
+
+            let delay = 1000;
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(targetUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`Status: ${response.status}`);
+                    const data = await response.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) return text;
+                    throw new Error("Respuesta vacía");
+                } catch (error) {
+                    if (i === 4) throw error; // Lanza el error en el último intento fallido
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        // CONTROLADORES DE LA INTERFAZ DEL PANEL DE IA
+        function openAiPanel(title) {
+            const panel = document.getElementById("ai-panel");
+            document.getElementById("ai-panel-title").innerText = title;
+            document.getElementById("ai-response-text").innerHTML = "";
+            document.getElementById("ai-loader").classList.remove("hidden");
+            panel.classList.remove("hidden");
+            // Animación desliar
+            setTimeout(() => {
+                panel.classList.remove("translate-x-full");
+            }, 50);
+        }
+
+        function closeAiPanel() {
+            const panel = document.getElementById("ai-panel");
+            panel.classList.add("translate-x-full");
+            setTimeout(() => {
+                panel.classList.add("hidden");
+            }, 300);
+        }
+
+        function getConvocadosData() {
+            const seleccionados = players.filter(p => p.selected);
+            const noSeleccionadosAltos = players.filter(p => !p.selected && p.prob >= 75);
+            return { seleccionados, noSeleccionadosAltos };
+        }
+
+        // FUNCIÓN 1: ANALIZAR CONVOCATORIA tacticamente con Gemini
+        async function analyzeConvocatoria() {
+            const { seleccionados, noSeleccionadosAltos } = getConvocadosData();
+            
+            openAiPanel("✨ Análisis de la Convocatoria");
+
+            // Si el usuario no ha seleccionado a nadie, avisamos constructivamente
+            if (seleccionados.length === 0) {
+                document.getElementById("ai-loader").classList.add("hidden");
+                document.getElementById("ai-response-text").innerHTML = `
+                    <div class="p-4 bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 rounded-xl">
+                        <p class="font-bold mb-1">📋 No has seleccionado ningún jugador aún</p>
+                        <p class="text-xs text-slate-400">Selecciona algunos jugadores marcando la casilla de verificación a la izquierda de su nombre, o utiliza el botón de <strong>Auto-Selección Probable</strong> para que la IA tenga datos sobre los que deliberar.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Crear el prompt con los datos actuales
+            const seleccionadosStr = seleccionados.map(p => `- ${p.name} (${p.category.toUpperCase()}, Club: ${p.team}, Probabilidad original: ${p.prob}%)`).join("\n");
+            const descartadosStr = noSeleccionadosAltos.map(p => `- ${p.name} (${p.category.toUpperCase()}, Club: ${p.team}, Probabilidad: ${p.prob}%)`).join("\n");
+
+            const prompt = `
+            Actúa como el Director Deportivo de la Selección Española y un analista táctico de élite (estilo Maldini o analista de Fiebre Maldini). Analiza la siguiente lista de convocados actual que ha elegido el seleccionador (el usuario):
+
+            JUGADORES CONVOCADOS SELECCIONADOS (${seleccionados.length} jugadores):
+            ${seleccionadosStr}
+
+            JUGADORES DE ALTA PROBABILIDAD NO SELECCIONADOS (DESCARTADOS DESTACADOS):
+            ${descartadosStr}
+
+            Por favor, genera un informe sumamente interactivo, deportivo y ameno estructurado con los siguientes apartados:
+            1. **Análisis de Equilibrio por Líneas**: ¿Se respeta el número de plazas tradicionales (3 porteros, 8 defensas, etc.)? ¿Hay sobrepoblación en alguna demarcación o faltan recambios?
+            2. **Fortalezas del Bloque**: ¿Cuál es el punto más fuerte del equipo basado en las sinergias de clubs y la calidad de los jugadores seleccionados?
+            3. **Debilidades o Huecos**: ¿Qué zonas quedan vulnerables o qué perfil de jugador hace falta (ej: falta un extremo desbordante, faltan centrales con salida de balón)?
+            4. **El Descarte Polémico**: Si se ha dejado fuera a alguna estrella de alta probabilidad, coméntalo de forma periodística y picante.
+            5. **Predicción para el Mundial 2026**: Sé creativo. ¿A qué ronda llegará esta España según tu análisis de IA?
+
+            Escribe en formato markdown dinámico con iconos de fútbol ⚽, advertencias ⚠️, táctica 📋 y estrellas ⭐.
+            `;
+
+            const systemInstruction = "Eres un redactor jefe de análisis deportivo español, experto en la Selección Española de Fútbol (La Roja). Tu estilo es dinámico, analítico, respetuoso pero crítico, y usas jerga de fútbol moderna.";
+
+            try {
+                const response = await callGemini(prompt, systemInstruction);
+                document.getElementById("ai-loader").classList.add("hidden");
+                document.getElementById("ai-response-text").innerHTML = marked.parse(response);
+            } catch (error) {
+                document.getElementById("ai-loader").classList.add("hidden");
+                document.getElementById("ai-response-text").innerHTML = `
+                    <div class="p-4 bg-red-500/10 border border-red-500/30 text-red-300 rounded-xl">
+                        <p class="font-bold">❌ Error en el análisis</p>
+                        <p class="text-xs text-slate-400 mt-1">No se ha podido conectar con el servicio de Inteligencia Artificial. Por favor, asegúrate de tener conexión a Internet e inténtalo de nuevo.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // FUNCIÓN 2: SIMULAR RUEDA DE PRENSA CON GEMINI
+        async function generatePressConference() {
+            const { seleccionados, noSeleccionadosAltos } = getConvocadosData();
+            
+            openAiPanel("✨ Simulador de Rueda de Prensa");
+
+            if (seleccionados.length === 0) {
+                document.getElementById("ai-loader").classList.add("hidden");
+                document.getElementById("ai-response-text").innerHTML = `
+                    <div class="p-4 bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 rounded-xl">
+                        <p class="font-bold mb-1">🎤 Sala de prensa vacía</p>
+                        <p class="text-xs text-slate-400">Primero debes estructurar tu convocatoria marcando tus jugadores favoritos para que la prensa te cuestione tus decisiones tácticas.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const seleccionadosStr = seleccionados.map(p => `${p.name} (${p.team})`).join(", ");
+            const descartadosStr = noSeleccionadosAltos.map(p => `${p.name} (${p.team}, ${p.prob}%)`).join(", ");
+
+            const prompt = `
+            Actúa como la sala de prensa de Las Rozas donde los periodistas deportivos más incisivos de España (Marca, AS, Cope, Chiringuito, Relevo) te hacen preguntas de fuego sobre tu última lista de convocados.
+
+            Tu lista elegida: [${seleccionadosStr}]
+            Los descartados con alta probabilidad original: [${descartadosStr}]
+
+            Escribe una transcripción interactiva con 3 preguntas duras de periodistas ficticios y ofrece una respuesta sugerida ideal para cada una que el seleccionador (el usuario) podría dar para defenderse:
+            
+            Formato requerido:
+            - **[Periodista de Diario AS 📰]**: Una pregunta muy directa sobre un descarte clave o sobre una sorpresa inesperada de tu lista.
+            - **[Míster (Tú respuesta aconsejada) 👔]**: Una explicación de manual táctico, elegante pero firme.
+            
+            - **[Periodista de El Chiringuito ⚡]**: Una pregunta de alta tensión, buscando la polémica de vestuario o la falta de gol/liderazgo.
+            - **[Míster (Tu respuesta aconsejada) 👔]**: Cómo apagar el fuego con deportividad y enfoque de grupo.
+
+            - **[Periodista de Radio Nacional 🎙️]**: Una pregunta sobre el estado físico o el rejuvenecimiento de la plantilla (ej: Gavi, Cubarsí, Pedri o Lamine Yamal si están).
+            - **[Míster (Tu respuesta aconsejada) 👔]**: Una respuesta centrada en el proyecto a largo plazo para el Mundial 2026.
+
+            Añade al final una nota humorística o de ánimo para el seleccionador antes de viajar al Mundial. Utiliza markdown con buen gusto visual.
+            `;
+
+            const systemInstruction = "Eres un panel de periodistas deportivos españoles mordaces y elocuentes en la rueda de prensa oficial de la Selección Española.";
+
+            try {
+                const response = await callGemini(prompt, systemInstruction);
+                document.getElementById("ai-loader").classList.add("hidden");
+                document.getElementById("ai-response-text").innerHTML = marked.parse(response);
+            } catch (error) {
+                document.getElementById("ai-loader").classList.add("hidden");
+                document.getElementById("ai-response-text").innerHTML = `
+                    <div class="p-4 bg-red-500/10 border border-red-500/30 text-red-300 rounded-xl">
+                        <p class="font-bold">❌ Error al convocar a la prensa</p>
+                        <p class="text-xs text-slate-400 mt-1">La conexión ha fallado tras varios reintentos. Vuelve a pulsar el botón para convocar a los medios.</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
